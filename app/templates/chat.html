@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat da Mesa {{ table_name }}</title>
+    <!-- Link para o arquivo CSS externo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% if custom_css %}
+    <style>
+        {{ custom_css | safe }}
+    </style>
+    {% endif %}
+</head>
+<body>
+    <div class="back-to-list-bar">
+        <a href="{{ url_for('index') }}">Voltar para a lista de mesas</a>
+    </div>
+    <!-- Adicionamos os atributos data-* para passar as variáveis para o JavaScript -->
+    <div id="chat-container" 
+         data-table-id="{{ table_id }}" 
+         data-user-id="{{ current_user_id }}" 
+         data-nickname="{{ current_user_nickname }}">
+        <div id="chat-header">Chat da Mesa: {{ table_name }}</div>
+        <ul id="chat-window">
+            <!-- O histórico do chat será carregado aqui pelo Flask/Jinja2 -->
+            {% for action in history %}
+                <li>
+                    <span class="message-timestamp">[{{ action.timestamp.strftime('%H:%M:%S') }}]</span>
+                    <span class="message-author">{{ action.author.nickname }}:</span>
+                    {% if action.action_type == 'chat' %}
+                        <span class="chat-message">{{ action.details.message | e }}</span>
+                    {% elif action.action_type == 'dice_roll' %}
+                        <span class="dice-roll">rolou {{ action.details.dice }} e obteve {{ action.details.result }}</span>
+                    {% else %}
+                        <span class="status-message">Ação: {{ action.action_type }} - {{ action.details | e }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <form id="chat-form">
+            <input id="message-input" autocomplete="off" placeholder="Digite sua mensagem ou /roll 1d20"/>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <!-- Biblioteca cliente do Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <!-- Link para o arquivo JavaScript externo -->
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
